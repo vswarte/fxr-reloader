@@ -1,0 +1,11 @@
+[package]
+name = "fxr-reloader-gui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+iced = { version = "0.8", features = ["image_rs", "smol"] }
+rfd = "0.11"
+image = "0.24"
+sysinfo = "0.28"
+dll-syringe = { workspace = true, features = ["payload-utils"]}

@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "gui",
+    "agent",
+]
+resolver = "2"
+
+[workspace.dependencies]
+dll-syringe = "0.15.0"

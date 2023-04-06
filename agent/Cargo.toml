@@ -1,0 +1,11 @@
+[package]
+name = "fxr-reloader-agent"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+dll-syringe = { workspace = true, features = ["payload-utils"]}
+windows = { version = "0.44", features = ["Win32_System_LibraryLoader", "Win32_Foundation"] }
