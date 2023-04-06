@@ -12,7 +12,7 @@ them with yabber or restart the game at all.
  - You edit an FXR by some means
  - You click "Reload FXR"
  - You select one or multiple edited FXR files
- - The FXR *definitions* are now patch (this means the effects need recreating for this to be visible, reapply buffs, 
+ - The FXR **definitions** are now patched (this means the effects need recreating for this to be visible, reapply buffs, 
     recast spells, reload maps to unload map-specific effects, etc)
 
 ## Why would I use this?
