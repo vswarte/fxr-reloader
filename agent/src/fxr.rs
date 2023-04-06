@@ -2,6 +2,7 @@ use std::ptr;
 use std::mem;
 use crate::util::{SymbolLookupError, get_module_handle};
 
+// TODO: gotta AOB these at some point, maybe use the broadsword crate I've been preparing?
 // Holds the SFX repository which manages all the FXR definitions
 const OFFSET_SFX_IMP: usize = 0x3cfa618;
 // ??? but it doesn't work without this
