@@ -6,4 +6,5 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-dll-syringe = "0.15.0"
+# I refer to the GH repo directly until https://github.com/OpenByteDev/dll-syringe/issues/10 is merged
+dll-syringe = { git = "https://github.com/OpenByteDev/dll-syringe.git", rev = "0508b0f" }
