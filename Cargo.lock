@@ -671,8 +671,7 @@ dependencies = [
 [[package]]
 name = "dll-syringe"
 version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d033373624f6b27ece2c6e96f5962198870d8f9542614ce6e2eabdd89ccf177"
+source = "git+https://github.com/OpenByteDev/dll-syringe.git?rev=0508b0f#0508b0f2e029d52c588bd6c2fbf8658e866fd9a0"
 dependencies = [
  "bincode",
  "cstr",
