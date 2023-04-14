@@ -1,5 +1,3 @@
-#![feature(once_cell_try)]
-
 use rfd::FileDialog;
 use image::ImageFormat;
 use std::path::PathBuf;
