@@ -18,5 +18,7 @@ jobs:
           args: --release --all-features --verbose
       - uses: actions/upload-artifact@v3
         with:
-          name: binaries
-          path: target/*
+          path: target/release/*.exe
+      - uses: actions/upload-artifact@v3
+        with:
+          path: target/release/*.dll
