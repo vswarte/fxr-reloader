@@ -12,7 +12,6 @@ fn string_to_pcwstr(input: String) -> PCWSTR {
 #[derive(Debug)]
 pub enum SymbolLookupError {
     ModuleNotFound,
-    // SymbolNotFound,
 }
 
 /// Finds the module's base address. Used to calculate the offsets to specific offsets in the game's
