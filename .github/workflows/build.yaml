@@ -19,4 +19,4 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: binaries
-          path: target/release/*.{exe,dll}
+          path: target/*
