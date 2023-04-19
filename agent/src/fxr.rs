@@ -6,11 +6,11 @@ use crate::util::{SymbolLookupError, get_module_handle};
 // Holds the SFX repository which manages all the FXR definitions
 const OFFSET_SFX_IMP: usize = 0x3cfa618;
 // ??? but it doesn't work without this
-const OFFSET_WTF_FXR: usize = 0x20dea50;
+const OFFSET_WTF_FXR: usize = 0x20deb60;
 // Fills in offsets with their pointers
-const OFFSET_PATCH_OFFSETS: usize = 0x20b5940;
+const OFFSET_PATCH_OFFSETS: usize = 0x20b5a50;
 // Retrieves some allocator which we'll use to allocate the required mem for the FXR defs
-const OFFSET_GET_FXR_ALLOCATOR: usize = 0x20713b0;
+const OFFSET_GET_FXR_ALLOCATOR: usize = 0x20714c0;
 
 #[repr(C)]
 #[derive(Debug)]
