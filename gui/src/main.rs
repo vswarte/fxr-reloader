@@ -73,7 +73,7 @@ impl Application for ReloaderGUI {
             last_files: None,
             log_entries: vec![
                 String::from("Made by chainfailure"),
-                String::from("Version 0.0.2"),
+                String::from("Version 0.2.1"),
             ],
         }, Command::none())
     }
