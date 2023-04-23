@@ -52,7 +52,7 @@ pub(crate) fn call_fxr_patch(process: Pid, process_name: String, file: PathBuf) 
     }.unwrap().unwrap();
 
     // Call the thing with the FXR contents
-    remote_fn.call(process_name, &file_contents).unwrap();
+    remote_fn.call(&process_name, &file_contents).unwrap();
 
     // Remove agent DLL from remote process memory again
     syringe.eject(agent_module).unwrap();
