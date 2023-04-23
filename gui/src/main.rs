@@ -75,13 +75,13 @@ impl Application for ReloaderGUI {
             last_files: None,
             log_entries: vec![
                 String::from("Made by chainfailure"),
-                String::from("Version 0.2.1"),
+                String::from("Version 0.3.0-pre (Sekiro build)"),
             ],
         }, Command::none())
     }
 
     fn title(&self) -> String {
-        String::from("FXR Reloader")
+        String::from("FXR Reloader (Sekiro build)")
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
