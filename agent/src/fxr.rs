@@ -4,13 +4,13 @@ use crate::util::{SymbolLookupError, get_module_handle};
 
 // TODO: gotta AOB these at some point, maybe use the broadsword crate I've been preparing?
 // Holds the SFX repository which manages all the FXR definitions
-const OFFSET_SFX_IMP: usize = 0x3cfa618;
+const OFFSET_SFX_IMP: usize = 0x3d99ce8;
 // ??? but it doesn't work without this
-const OFFSET_WTF_FXR: usize = 0x20deb60;
+const OFFSET_WTF_FXR: usize = 0x24d5fb0;
 // Fills in offsets with their pointers
-const OFFSET_PATCH_OFFSETS: usize = 0x20b5a50;
+const OFFSET_PATCH_OFFSETS: usize = 0x24d1270;
 // Retrieves some allocator which we'll use to allocate the required mem for the FXR defs
-const OFFSET_GET_FXR_ALLOCATOR: usize = 0x20714c0;
+const OFFSET_GET_FXR_ALLOCATOR: usize = 0x4069c0;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -83,8 +83,7 @@ struct SfxImp {
 }
 
 fn get_game_base() -> Result<usize, SymbolLookupError> {
-    get_module_handle("eldenring.exe".to_string())
-        .or_else(|_| get_module_handle("start_protected_game.exe".to_string()))
+    get_module_handle("sekiro.exe".to_string())
 }
 
 /// This function takes in the FXR file as a byte array, prepares it for use in-game by calling some

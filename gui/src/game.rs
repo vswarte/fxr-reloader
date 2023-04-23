@@ -15,7 +15,7 @@ pub(crate) fn get_running_games() -> Vec<GameProcess> {
         .iter()
         .map(|x| GameProcess { pid: *x.0, name: x.1.name().to_string() })
         .filter(|x| {
-            x.name == "eldenring.exe" || x.name == "start_protected_game.exe"
+            x.name == "sekiro.exe"
         })
         .collect::<Vec<GameProcess>>()
 }
