@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use rfd::FileDialog;
 use image::ImageFormat;
 use std::path::PathBuf;
