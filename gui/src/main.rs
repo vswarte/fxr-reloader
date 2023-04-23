@@ -40,7 +40,7 @@ impl ReloaderGUI {
         let p = self.selected_game.as_ref().unwrap();
 
         for file in files.into_iter() {
-            game::call_fxr_patch(p.name, p.pid, file).unwrap();
+            game::call_fxr_patch(p.pid, p.name, file).unwrap();
         }
     }
 
