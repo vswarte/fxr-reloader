@@ -15,7 +15,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --all-features --verbose
+          args: --release --verbose
       - uses: actions/upload-artifact@v3
         with:
           path: target/release/*.exe
