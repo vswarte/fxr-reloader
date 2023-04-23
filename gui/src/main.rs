@@ -37,10 +37,10 @@ impl ReloaderGUI {
     // It's probably OK calling unwrap directly as we only have the on_press registered when
     // self.selected_game is Some(T)
     fn patch_fxr_files(&self, files: Vec<PathBuf>) {
-        let process_id = self.selected_game.as_ref().unwrap().pid;
+        let p = self.selected_game.as_ref().unwrap();
 
         for file in files.into_iter() {
-            game::call_fxr_patch(process_id, file).unwrap();
+            game::call_fxr_patch(p.name, p.pid, file).unwrap();
         }
     }
 

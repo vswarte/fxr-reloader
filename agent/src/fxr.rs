@@ -82,28 +82,23 @@ struct SfxImp {
     pub scene_ctrl: &'static mut GXFfxSceneCtrl,
 }
 
-fn get_game_base() -> Result<usize, SymbolLookupError> {
-    get_module_handle("sekiro.exe".to_string())
-}
-
 /// This function takes in the FXR file as a byte array, prepares it for use in-game by calling some
 /// routines that are supplied by the game, and swaps out the old pointer to the FXR definition in
 /// `CSSfxImp` with one to the definition that we prepared. This effectively causes the game to use
 /// our own definition when a given sfx is spawned again.
-pub(crate) unsafe fn patch_fxr_definition(input_fxr: Vec<u8>) {
+pub(crate) unsafe fn patch_fxr_definition(module_name: String, input_fxr: Vec<u8>) {
     // Grab the 4 bytes that represent the sfx ID from the byte array and cast them to a uint 32.
     let fxr_id_bytes: [u8; 4] = input_fxr[0xC..0x10].try_into().unwrap();
     let supplied_fxr_id = u32::from_le_bytes(fxr_id_bytes);
 
     // Get the game base and build pointers to the functions and statics
-    let game_base = get_game_base().unwrap();
+    let game_base = get_module_handle(module_name).unwrap();
 
     // The CSSfxImp seems to be a repository holding all of the FXR definitions indirectly
     let sfx_imp_ptr = game_base + OFFSET_SFX_IMP;
     let sfx_imp: &mut SfxImp = unsafe { &mut **(sfx_imp_ptr as *const *mut SfxImp) };
     let fxr_list = &sfx_imp.scene_ctrl.graphics_resource_manager.resource_container.fxr_list;
     let fxr_list_ptr = *(*fxr_list as *const FXRList as *const usize);
-
 
     // Traverse the FXRList
     // TODO: this could be turned into an iterator abstraction as more repositories in the game use a similar layout.

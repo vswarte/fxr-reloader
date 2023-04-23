@@ -15,6 +15,7 @@ pub(crate) fn get_running_games() -> Vec<GameProcess> {
         .iter()
         .map(|x| GameProcess { pid: *x.0, name: x.1.name().to_string() })
         .filter(|x| {
+            x.name == "eldenring.exe" ||
             x.name == "sekiro.exe"
         })
         .collect::<Vec<GameProcess>>()
@@ -32,7 +33,7 @@ pub(crate) enum GameProcessError {
 /// `PatchFxr` when calling it. The Vec<u8> passed into `PatchFxr` is serialized with bincode
 /// to avoid the unsafety around directly passing around `Vec<_>` across FFI barriers.
 /// Once the `PatchFxr` method is done this function will eject the agent again.
-pub(crate) fn call_fxr_patch(process: Pid, file: PathBuf) -> Result<(), GameProcessError> {
+pub(crate) fn call_fxr_patch(process: Pid, process_name: String, file: PathBuf) -> Result<(), GameProcessError> {
     let target_process = OwnedProcess::from_pid(process.as_u32())
         .map_err(|_| GameProcessError::FindingProcessError)?;
 
@@ -47,11 +48,11 @@ pub(crate) fn call_fxr_patch(process: Pid, file: PathBuf) -> Result<(), GameProc
 
     // Prepare a call to the agent DLL's patch function
     let remote_fn = unsafe {
-        syringe.get_payload_procedure::<fn(Vec<u8>)>(agent_module, "PatchFxr")
+        syringe.get_payload_procedure::<fn(String, Vec<u8>)>(agent_module, "PatchFxr")
     }.unwrap().unwrap();
 
     // Call the thing with the FXR contents
-    remote_fn.call(&file_contents).unwrap();
+    remote_fn.call(process_name, &file_contents).unwrap();
 
     // Remove agent DLL from remote process memory again
     syringe.eject(agent_module).unwrap();
@@ -62,7 +63,7 @@ pub(crate) fn call_fxr_patch(process: Pid, file: PathBuf) -> Result<(), GameProc
 #[derive(Debug, Clone, Eq)]
 pub(crate) struct GameProcess {
     pub pid: Pid,
-    name: String,
+    pub name: String,
 }
 
 impl fmt::Display for GameProcess {
