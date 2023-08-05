@@ -5,7 +5,7 @@ This piece of hot garbage allows you to swap out FXR files without having to rep
 them with yabber or restart the game at all.
 
 ## How do I use this?
- - You launch Elden Ring (currently only for ER 1.09)
+ - You launch Elden Ring (v1.10.0) or Sekiro (v1.6.0)
  - You launch this tool.
  - You ensure the game's process is set to the right process (only really needs tweaking if you're running multiple
     instances of the game).

@@ -1,16 +1,35 @@
 use std::ptr;
 use std::mem;
-use crate::util::{SymbolLookupError, get_module_handle};
+use crate::util::get_module_handle;
 
-// TODO: gotta AOB these at some point, maybe use the broadsword crate I've been preparing?
-// Holds the SFX repository which manages all the FXR definitions
-const OFFSET_SFX_IMP: usize = 0x3cfa618;
-// ??? but it doesn't work without this
-const OFFSET_WTF_FXR: usize = 0x20deb60;
-// Fills in offsets with their pointers
-const OFFSET_PATCH_OFFSETS: usize = 0x20b5a50;
-// Retrieves some allocator which we'll use to allocate the required mem for the FXR defs
-const OFFSET_GET_FXR_ALLOCATOR: usize = 0x20714c0;
+struct GameOffsets {
+    pub sfx_imp: usize,
+    pub wtf_fxr: usize,
+    pub patch_offsets: usize,
+    pub get_allocator: usize,
+}
+
+fn get_offsets_for_game(game: &str) -> Option<GameOffsets> {
+    match game {
+        // Elden Ring 1.10.0
+        "eldenring.exe" => Some(GameOffsets {
+            sfx_imp: 0x3cfa618,
+            wtf_fxr: 0x20dee10,
+            patch_offsets: 0x20b5d00,
+            get_allocator: 0x2071770,
+        }),
+
+        // Sekiro 1.06.0
+        "sekiro.exe" => Some(GameOffsets {
+            sfx_imp: 0x3d99ce8,
+            wtf_fxr: 0x24d5fb0,
+            patch_offsets: 0x24d1270,
+            get_allocator: 0x4069c0,
+        }),
+
+        _ => None,
+    }
+}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -82,29 +101,26 @@ struct SfxImp {
     pub scene_ctrl: &'static mut GXFfxSceneCtrl,
 }
 
-fn get_game_base() -> Result<usize, SymbolLookupError> {
-    get_module_handle("eldenring.exe".to_string())
-        .or_else(|_| get_module_handle("start_protected_game.exe".to_string()))
-}
-
 /// This function takes in the FXR file as a byte array, prepares it for use in-game by calling some
 /// routines that are supplied by the game, and swaps out the old pointer to the FXR definition in
 /// `CSSfxImp` with one to the definition that we prepared. This effectively causes the game to use
 /// our own definition when a given sfx is spawned again.
-pub(crate) unsafe fn patch_fxr_definition(input_fxr: Vec<u8>) {
+pub(crate) unsafe fn patch_fxr_definition(module_name: String, input_fxr: Vec<u8>) {
+    // TODO: add some nice error handling
+    let offsets = get_offsets_for_game(module_name.as_str()).unwrap();
+
     // Grab the 4 bytes that represent the sfx ID from the byte array and cast them to a uint 32.
     let fxr_id_bytes: [u8; 4] = input_fxr[0xC..0x10].try_into().unwrap();
     let supplied_fxr_id = u32::from_le_bytes(fxr_id_bytes);
 
     // Get the game base and build pointers to the functions and statics
-    let game_base = get_game_base().unwrap();
+    let game_base = get_module_handle(module_name).unwrap();
 
     // The CSSfxImp seems to be a repository holding all of the FXR definitions indirectly
-    let sfx_imp_ptr = game_base + OFFSET_SFX_IMP;
+    let sfx_imp_ptr = game_base + offsets.sfx_imp;
     let sfx_imp: &mut SfxImp = unsafe { &mut **(sfx_imp_ptr as *const *mut SfxImp) };
     let fxr_list = &sfx_imp.scene_ctrl.graphics_resource_manager.resource_container.fxr_list;
     let fxr_list_ptr = *(*fxr_list as *const FXRList as *const usize);
-
 
     // Traverse the FXRList
     // TODO: this could be turned into an iterator abstraction as more repositories in the game use a similar layout.
@@ -126,7 +142,7 @@ pub(crate) unsafe fn patch_fxr_definition(input_fxr: Vec<u8>) {
         // TODO: can probably deref fxr_allocator_fn, fxr_alloc, patch_fxr_offsets and wtf_fxr once instead of every swap
         if current_node.fxr_wrapper.fxr.ffx_id == supplied_fxr_id {
             // Grabs the FXR-specific allocator. Unsure if the FXR defs are freed at all so might not need an allocator object from the game itself
-            let fxr_allocator = (mem::transmute::<usize, unsafe extern "system" fn() -> usize>(game_base + OFFSET_GET_FXR_ALLOCATOR))();
+            let fxr_allocator = (mem::transmute::<usize, unsafe extern "system" fn() -> usize>(game_base + offsets.get_allocator))();
 
             // We need to dig into the vftable of the allocator to get to the actual alloc method.
             // The alloc function is the 11th (vftable[10]) entry in the vftable.
@@ -145,13 +161,13 @@ pub(crate) unsafe fn patch_fxr_definition(input_fxr: Vec<u8>) {
 
             // This fn seemingly replaces the FXR def offsets for in-memory pointers. Oddly it takes
             // 3 identical copies of the FXR data.
-            let patch_fxr_offsets = mem::transmute::<usize, unsafe extern "system" fn(usize, usize, usize) -> *const ()>(game_base + OFFSET_PATCH_OFFSETS);
+            let patch_fxr_offsets = mem::transmute::<usize, unsafe extern "system" fn(usize, usize, usize) -> *const ()>(game_base + offsets.patch_offsets);
 
             // RCX, RDX and R8 all hold the same pointer to the new FXR def for some reason
             patch_fxr_offsets(alloc, alloc, alloc);
 
             // Do something with the new FXR def? Crashes happen if I don't call this
-            let wtf_fxr = mem::transmute::<usize, unsafe extern "system" fn(usize) -> *const ()>(game_base + OFFSET_WTF_FXR);
+            let wtf_fxr = mem::transmute::<usize, unsafe extern "system" fn(usize) -> *const ()>(game_base + offsets.wtf_fxr);
             wtf_fxr(alloc);
 
             // Do some rather questionable casting because nobody ever intended for this code to exist

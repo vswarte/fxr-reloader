@@ -3,7 +3,7 @@
 use rfd::FileDialog;
 use image::ImageFormat;
 use std::path::PathBuf;
-use iced::window::icon::Icon;
+use iced::window::icon;
 use iced::window::Settings as WindowSettings;
 use iced::widget::{button, column, row, pick_list, vertical_space, text};
 use iced::{Application, Command, Element, Settings, Theme, Length, Subscription, Color, executor};
@@ -14,7 +14,7 @@ use crate::game::{get_running_games, GameProcess};
 const MAX_LOG_ENTRIES: usize = 10;
 
 pub fn main() -> iced::Result {
-    let icon = Icon::from_file_data(include_bytes!("icon.png"), Some(ImageFormat::Png)).unwrap();
+    let icon = icon::from_file_data(include_bytes!("icon.png"), Some(ImageFormat::Png)).unwrap();
 
     ReloaderGUI::run(Settings {
         window: WindowSettings {
@@ -37,10 +37,10 @@ impl ReloaderGUI {
     // It's probably OK calling unwrap directly as we only have the on_press registered when
     // self.selected_game is Some(T)
     fn patch_fxr_files(&self, files: Vec<PathBuf>) {
-        let process_id = self.selected_game.as_ref().unwrap().pid;
+        let p = self.selected_game.as_ref().unwrap();
 
         for file in files.into_iter() {
-            game::call_fxr_patch(process_id, file).unwrap();
+            game::call_fxr_patch(p.pid, p.name.clone(), file).unwrap();
         }
     }
 
@@ -75,7 +75,7 @@ impl Application for ReloaderGUI {
             last_files: None,
             log_entries: vec![
                 String::from("Made by chainfailure"),
-                String::from("Version 0.2.1"),
+                String::from("Version 0.4.0"),
             ],
         }, Command::none())
     }
