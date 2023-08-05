@@ -1025,7 +1025,7 @@ dependencies = [
 
 [[package]]
 name = "fxr-reloader-agent"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "dll-syringe",
  "windows",
@@ -1033,7 +1033,7 @@ dependencies = [
 
 [[package]]
 name = "fxr-reloader-gui"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "dll-syringe",
  "iced",
