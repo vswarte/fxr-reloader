@@ -51,3 +51,7 @@ then replaces it with the ones you supplied.
 ## Hi mom!
 Katalash gave me a PoC that he couldn't turn into a full tool because of time constraints. So he's the real goat
 responsible for this tool. I merely regurgitate.
+
+### Dependencies:
+ - [dll-syringe](https://github.com/OpenByteDev/dll-syringe) per MIT license
+ - [iced](https://github.com/iced-rs/iced) per MIT license
