@@ -3,7 +3,7 @@
 use rfd::FileDialog;
 use image::ImageFormat;
 use std::path::PathBuf;
-use iced::window::icon::Icon;
+use iced::window::icon;
 use iced::window::Settings as WindowSettings;
 use iced::widget::{button, column, row, pick_list, vertical_space, text};
 use iced::{Application, Command, Element, Settings, Theme, Length, Subscription, Color, executor};
@@ -14,7 +14,7 @@ use crate::game::{get_running_games, GameProcess};
 const MAX_LOG_ENTRIES: usize = 10;
 
 pub fn main() -> iced::Result {
-    let icon = Icon::from_file_data(include_bytes!("icon.png"), Some(ImageFormat::Png)).unwrap();
+    let icon = icon::from_file_data(include_bytes!("icon.png"), Some(ImageFormat::Png)).unwrap();
 
     ReloaderGUI::run(Settings {
         window: WindowSettings {
