@@ -74,8 +74,7 @@ impl Application for ReloaderGUI {
                 .map(|x| x.clone()),
             last_files: None,
             log_entries: vec![
-                String::from("Made by chainfailure"),
-                String::from("Version 0.4.0"),
+                String::from("Version 0.4.1"),
             ],
         }, Command::none())
     }

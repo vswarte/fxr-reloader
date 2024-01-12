@@ -8,4 +8,4 @@ iced = { version = "0.10.0", features = ["image", "smol"] }
 rfd = "0.11"
 image = "0.24"
 sysinfo = "0.28"
-dll-syringe = { workspace = true, features = ["payload-utils"]}
+dll-syringe = { workspace = true, features = ["rpc-payload", "payload-utils"]}
