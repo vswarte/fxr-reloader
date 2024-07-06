@@ -13,10 +13,10 @@ fn get_offsets_for_game(game: &str) -> Option<GameOffsets> {
     match game {
         // Elden Ring 1.12.0
         "eldenring.exe" => Some(GameOffsets {
-            sfx_imp: 0x3d839b8,
-            wtf_fxr: 0x2124770,
-            patch_offsets: 0x20fb660,
-            get_allocator: 0x20b70d0,
+            sfx_imp: 0x3d839d8,
+            wtf_fxr: 0x2124790,
+            patch_offsets: 0x20fb680,
+            get_allocator: 0x20b70f0,
         }),
 
         // Sekiro 1.06.0
