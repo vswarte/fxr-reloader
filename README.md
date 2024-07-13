@@ -1,4 +1,4 @@
-# From Software FXR live reloader
+# FXR reloader :boom:
 
 ## What is this?
 This piece of hot garbage allows you to swap out FXR files without having to repackage
