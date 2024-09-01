@@ -2,7 +2,7 @@
 
 ## What is this?
 This piece of hot garbage allows you to swap out FXR files without having to repackage
-them with yabber or restart the game at all.
+them with yabber/witchy or restart the game at all.
 
 ## How do I use this?
  - You launch Elden Ring (v1.10.0) or Sekiro (v1.6.0)

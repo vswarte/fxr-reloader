@@ -1,10 +1,14 @@
+use protocol::PatchFxrError;
+
+mod game;
 mod fxr;
-mod util;
+mod singleton;
 
 dll_syringe::payload_procedure! {
-    fn PatchFxr(process_name: String, fxr_bytes: Vec<u8>) {
-        unsafe {
-            fxr::patch_fxr_definition(process_name, fxr_bytes);
-        }
+    fn PatchFxr(fxrs: Vec<Vec<u8>>) -> Result<(), PatchFxrError> {
+        let game = game::detection::detect_running_game()?;
+        let patcher = game::make_patcher(game)?;
+
+        fxrs.into_iter().try_for_each(|f| patcher.patch(f))
     }
 }

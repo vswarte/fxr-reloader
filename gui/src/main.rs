@@ -1,169 +1,122 @@
-#![windows_subsystem = "windows"]
-
-use rfd::FileDialog;
-use image::ImageFormat;
 use std::path::PathBuf;
-use iced::window::icon;
-use iced::window::Settings as WindowSettings;
-use iced::widget::{button, column, row, pick_list, vertical_space, text};
-use iced::{Application, Command, Element, Settings, Theme, Length, Subscription, Color, executor};
 
-pub(crate) mod game;
-use crate::game::{get_running_games, GameProcess};
+use eframe::egui::{self, Style, Vec2, Visuals};
 
-const MAX_LOG_ENTRIES: usize = 10;
+mod game;
 
-pub fn main() -> iced::Result {
-    let icon = icon::from_file_data(include_bytes!("icon.png"), Some(ImageFormat::Png)).unwrap();
+const WINDOW_SIZE: Vec2 = Vec2::new(400.0, 600.0);
 
-    ReloaderGUI::run(Settings {
-        window: WindowSettings {
-            size: (300, 400),
-            resizable: false,
-            icon: Some(icon),
-            ..WindowSettings::default()
-        },
-        ..Settings::default()
-    })
+fn main() {
+    let native_options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_app_id("fxr-reloader")
+            .with_title(get_project_title())
+            .with_inner_size(WINDOW_SIZE)
+            .with_taskbar(true)
+            .with_resizable(false),
+        ..eframe::NativeOptions::default()
+    };
+
+    eframe::run_native(
+        get_project_title().as_str(),
+        native_options,
+        Box::new(|cc| Ok(Box::new(FxrReloaderApp::new(cc)))),
+    ).expect("Could not run egui app");
 }
 
-struct ReloaderGUI {
-    selected_game: Option<GameProcess>,
-    last_files: Option<Vec<PathBuf>>,
+#[derive(Default)]
+struct FxrReloaderApp {
+    selected_process: Option<game::GameProcess>,
+    selected_files: Vec<PathBuf>,
     log_entries: Vec<String>,
 }
 
-impl ReloaderGUI {
-    // It's probably OK calling unwrap directly as we only have the on_press registered when
-    // self.selected_game is Some(T)
-    fn patch_fxr_files(&self, files: Vec<PathBuf>) {
-        let p = self.selected_game.as_ref().unwrap();
+impl FxrReloaderApp {
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        cc.egui_ctx.set_style(Style {
+            visuals: Visuals::dark(),
+            ..Style::default()
+        });
 
-        for file in files.into_iter() {
-            game::call_fxr_patch(p.pid, p.name.clone(), file).unwrap();
+        Self {
+            selected_process: game::get_running_games().first().cloned(),
+            ..Self::default()
         }
     }
 
-    fn add_log_entry(&mut self, entry: String) {
-        self.log_entries.push(entry);
+    fn reload_selected_fxrs(&mut self) {
+        let result = game::call_fxr_patch(
+            self.selected_process.as_ref().unwrap().pid,
+            &self.selected_files
+        );
 
-        if self.log_entries.len() > MAX_LOG_ENTRIES {
-            self.log_entries.remove(0);
+        match result {
+            Ok(_) => self.log_entries.push(String::from("Reloaded FXR")),
+            Err(e) => self.log_entries.push(format!("Failed to reload FXR: {e}")),
         }
     }
 }
 
-#[derive(Debug, Clone)]
-enum Message {
-    SelectedGameChanged(GameProcess),
-    ReloadFXRPressed,
-    ReloadLastFilesPressed,
-    UpdateLog,
-}
+impl eframe::App for FxrReloaderApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading(get_project_title());
 
-impl Application for ReloaderGUI {
-    type Executor = executor::Default;
-    type Flags = ();
-    type Message = Message;
-    type Theme = Theme;
+            egui::ComboBox::from_label("Game process")
+                .selected_text(
+                    self.selected_process
+                        .as_ref()
+                        .map(format_process_label)
+                        .unwrap_or(String::from("No process selected")),
+                )
+                .show_ui(ui, |ui| {
+                    game::get_running_games().iter().for_each(|e| {
+                        ui.selectable_value(
+                            &mut self.selected_process,
+                            Some(e.clone()),
+                            format_process_label(e),
+                        );
+                    })
+                });
 
-    fn new(_flags: ()) -> (Self, Command<Self::Message>) {
-        (Self {
-            selected_game: get_running_games()
-                .first()
-                .map(|x| x.clone()),
-            last_files: None,
-            log_entries: vec![
-                String::from("Version 0.4.1"),
-            ],
-        }, Command::none())
-    }
+            if ui.add_enabled(
+                self.selected_process.is_some(),
+                egui::Button::new("Patch FXR")
+            ).clicked() {
+                if let Some(fxrs) = rfd::FileDialog::new()
+                    .add_filter("FXR Files", &["fxr"])
+                    .pick_files() {
 
-    fn title(&self) -> String {
-        String::from("FXR Reloader")
-    }
+                    self.selected_files = fxrs.iter()
+                        .map(|f| f.to_path_buf())
+                        .collect();
 
-    fn update(&mut self, message: Message) -> Command<Message> {
-        match message {
-            Message::SelectedGameChanged(game) => {
-                self.selected_game = Some(game);
-            }
-            Message::ReloadFXRPressed => {
-                let selection = prompt_fxr_files();
-                if let Some(selected_files) = selection {
-                    self.patch_fxr_files(selected_files.clone());
-                    self.last_files = Some(selected_files);
-                    self.add_log_entry(String::from("Reloaded FXR definition(s)"));
+                    self.reload_selected_fxrs();
                 }
             }
-            Message::ReloadLastFilesPressed => {
-                self.patch_fxr_files(self.last_files.as_ref().unwrap().clone());
-                self.add_log_entry(String::from("Reloaded last patched FXR(s)"));
+
+            if ui.add_enabled(
+                self.selected_process.is_some() && !self.selected_files.is_empty(),
+                egui::Button::new("Reload last reloaded FXRs")
+            ).clicked() {
+                self.reload_selected_fxrs();
             }
-            Message::UpdateLog => {
-                // self.add_log_entry(String::from("Blah"));
-            }
-        }
 
-        Command::none()
-    }
-
-    fn view(&self) -> Element<Message> {
-        let game_processes = get_running_games();
-
-        let mut reload_fxr_button = button("Reload FXR");
-        if self.selected_game.is_some() {
-            reload_fxr_button = reload_fxr_button
-                .on_press(Message::ReloadFXRPressed);
-        }
-
-        let log_entries = self.log_entries.join("\n");
-
-        let mut reload_last_button = button("Reload Last Reloaded FXR");
-        if self.last_files.is_some() {
-            reload_last_button = reload_last_button.on_press(Message::ReloadLastFilesPressed);
-        }
-
-        column![
-            "Game process",
-            pick_list(game_processes, self.selected_game.clone(), move |x| {
-                Message::SelectedGameChanged(x)
-            })
-                .placeholder("Select the running game you want to patch FXRs in")
-                .width(Length::Fill),
-
-            vertical_space(20),
-
-            row![
-                reload_fxr_button.width(Length::Fill),
-            ],
-
-            vertical_space(10),
-
-            row! [
-                reload_last_button.width(Length::Fill),
-            ],
-
-            vertical_space(Length::Fill),
-
-            text(log_entries)
-                .style(Color::from([0.8, 0.8, 0.8]))
-                .size(18),
-        ]
-            .padding(20)
-            .into()
-    }
-
-    fn subscription(&self) -> Subscription<Message> {
-        iced::time::every(std::time::Duration::from_millis(500)).map(|_| {
-            Message::UpdateLog
-        })
+            let mut log_buffer = self.log_entries.join("\n");
+            ui.add_enabled(
+                false,
+                egui::TextEdit::multiline(&mut log_buffer)
+                    .interactive(false)
+                    .desired_width(f32::INFINITY),
+            );
+        });
     }
 }
 
-fn prompt_fxr_files() -> Option<Vec<PathBuf>> {
-    FileDialog::new()
-        .add_filter("FXR Files", &["fxr"])
-        .set_directory("/")
-        .pick_files()
+fn format_process_label(process: &game::GameProcess) -> String {
+    format!("{} ({})", process.name, process.pid.as_u32())
+}
+
+fn get_project_title() -> String {
+    format!("FXR reloader v{}", env!("CARGO_PKG_VERSION"))
 }

@@ -1,9 +1,19 @@
 [workspace]
 members = [
-    "gui",
+    "protocol",
     "agent",
+    "gui",
+    "cli",
 ]
 resolver = "2"
 
 [workspace.dependencies]
 dll-syringe = "0.15"
+protocol = { path = "protocol/" }
+thiserror = "1"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = "z"

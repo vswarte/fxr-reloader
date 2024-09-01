@@ -1,13 +1,10 @@
 [package]
-name = "fxr-reloader-gui"
-version = "0.5.0"
+name = "fxr-reloader-cli"
+version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-eframe = "0.28"
-egui_file = "0.18"
-sysinfo = "0.31"
+clap = { version = "4", features = ["derive"] }
 dll-syringe = { workspace = true, features = ["rpc-payload", "payload-utils"]}
 protocol = { workspace = true }
 thiserror = { workspace = true }
-rfd = "0.14"
