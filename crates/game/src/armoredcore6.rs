@@ -25,6 +25,7 @@ pub struct ArmoredCore6FxrPatcher {
 
 impl ArmoredCore6FxrPatcher {
     pub fn new() -> Result<Self, PatchFxrError> {
+        std::fs::write("patching!.txt", []).unwrap();
         let get_allocator =
             {
                 let matched = match_instruction_pattern(GET_ALLOCATOR_PATTERN).ok_or(
@@ -46,6 +47,8 @@ impl ArmoredCore6FxrPatcher {
                     rip - offset.unsigned_abs() as usize
                 }
             } as usize;
+
+        std::fs::write("got_allocator.txt", format!("get_allocator: {get_allocator:x}")).unwrap();
 
         unsafe {
             Ok(Self {
@@ -82,13 +85,14 @@ impl FxrPatcher for ArmoredCore6FxrPatcher {
         let sfx_imp = unsafe {
             &mut *singleton::get_instance::<CSSfx>()?.ok_or(PatchFxrError::CSSfxInstanceMissing)?
         };
+        std::fs::write("sfx_imp.txt", format!("{sfx_imp:#x?}")).unwrap();
 
         let fxr = sfx_imp
             .fxr_definition_iter()
             .filter_map(|f| unsafe { f.as_mut() })
             .find(|f| f.id == fxr_id);
 
-        std::fs::write("fxr-log.txt", format!("{fxr:#x?}")).unwrap();
+        std::fs::write("found-fxr.txt", format!("{fxr:#x?}")).unwrap();
 
         if let Some(fxr) = fxr {
             let allocator = unsafe { (self.fxr_allocator_getter)() };
@@ -176,7 +180,7 @@ struct FxrResourceContainer {
 #[derive(Debug)]
 struct GXFfxGraphicsResourceManager {
     pub vftable: u64,
-    pub unk: [u8; 0x158],
+    pub unk: [u8; 0x58],
     pub resource_container: &'static mut FxrResourceContainer,
 }
 

@@ -10,31 +10,11 @@ use sysinfo::{Pid, System};
 
 const AGENT_DLL_NAME: &str = "fxr_reloader_agent.dll";
 
-const SUPPORTED_GAMES: [&str; 4] = [
+const SUPPORTED_GAMES: &[&str] = &[
     "eldenring.exe",
     "armoredcore6.exe",
-    "sekiro.exe",
     "start_protected_game.exe",
 ];
-
-/// Retrieves a list of running games that we should support
-pub(crate) fn get_running_games() -> Vec<GameProcess> {
-    let mut system = System::new();
-    system.refresh_all();
-
-    let mut processes = system.processes()
-        .iter()
-        .map(|x| GameProcess {
-            pid: *x.0,
-            name: x.1.name().to_string_lossy().into_owned()
-        })
-        .filter(|p| SUPPORTED_GAMES.contains(&p.name.as_str()))
-        .collect::<Vec<GameProcess>>();
-
-    processes.sort_by(|a, b| b.pid.as_u32().cmp(&a.pid.as_u32()));
-
-    processes
-}
 
 #[derive(Error, Debug)]
 pub(crate) enum PatchError {
@@ -54,6 +34,25 @@ pub(crate) enum PatchError {
     MissingPatchFunction,
     #[error("Failed to eject agent module after usage. {0}")]
     Eject(#[from] EjectError),
+}
+
+/// Retrieves a list of running games that we should support.
+pub(crate) fn get_running_games() -> Vec<GameProcess> {
+    let mut system = System::new();
+    system.refresh_all();
+
+    let mut processes = system.processes()
+        .iter()
+        .map(|x| GameProcess {
+            pid: *x.0,
+            name: x.1.name().to_string_lossy().into_owned()
+        })
+        .filter(|p| SUPPORTED_GAMES.contains(&p.name.as_str()))
+        .collect::<Vec<GameProcess>>();
+
+    processes.sort_by(|a, b| b.pid.as_u32().cmp(&a.pid.as_u32()));
+
+    processes
 }
 
 /// This function injects the agent DLL into the supplied process (if it's not in the process yet)

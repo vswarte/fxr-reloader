@@ -1,0 +1,8 @@
+[package]
+name = "fxr-reloader-game"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+protocol.workspace = true
+pelite = "0.10"

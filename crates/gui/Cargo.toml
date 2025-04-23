@@ -1,0 +1,22 @@
+[package]
+name = "fxr-reloader-gui"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+eframe = "0.28"
+egui_file = "0.18"
+sysinfo = "0.31"
+rfd = "0.14"
+protocol.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+dll-syringe.workspace = true
+
+[dependencies.egui_extras]
+version = "*"
+features = ["default", "all_loaders"]
+
+[dependencies.image]
+version = "0.25"
+features = ["jpeg", "png", "gif"]

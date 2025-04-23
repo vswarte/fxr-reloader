@@ -1,0 +1,15 @@
+[package]
+name = "fxr-reloader-agent"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+pelite = "0.10"
+protocol.workspace = true
+tracing.workspace = true
+dll-syringe.workspace = true
+windows.workspace = true
+broadsword.workspace = true

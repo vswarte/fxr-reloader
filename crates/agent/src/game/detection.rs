@@ -1,22 +1,23 @@
 use std::ops::Range;
 
-use pelite::pe::Pe;
-use pelite::pe::PeView;
+use pelite::pe64::Pe;
+use pelite::pe64::PeView;
 use protocol::GameDetectionError;
+use windows::Win32::System::LibraryLoader::GetModuleHandleA;
 
 pub const PRODUCT_NAME_ELDENRING: &str = "ELDEN RING™";
-// pub const PRODUCT_NAME_ARMOREDCORE6: &str = "ARMORED CORE™ VI FIRES OF RUBICON™";
+pub const PRODUCT_NAME_ARMOREDCORE6: &str = "ARMORED CORE™ VI FIRES OF RUBICON™";
 
 #[derive(Debug)]
 pub(crate) enum RunningGame {
     EldenRing,
-    // ArmoredCore6,
+    ArmoredCore6,
 }
 
 /// Figures out what game we're currently running inside of.
 pub(crate) fn detect_running_game() -> Result<RunningGame, GameDetectionError> {
     let header = unsafe {
-        let handle = windows::Win32::System::LibraryLoader::GetModuleHandleA(std::ptr::null().into())
+        let handle = GetModuleHandleA(None)
             .map_err(|_| GameDetectionError::NoMainModuleHandle)?;
 
         PeView::module(handle.0 as *const u8)
@@ -25,11 +26,9 @@ pub(crate) fn detect_running_game() -> Result<RunningGame, GameDetectionError> {
     let _ = find_text_section(&header)?;
     let product_name = select_product_name(&header)?;
 
-    std::fs::write("product-name.txt", &product_name).unwrap();
-
     Ok(match product_name.as_str() {
         PRODUCT_NAME_ELDENRING => RunningGame::EldenRing,
-        // PRODUCT_NAME_ARMOREDCORE6 => RunningGame::ArmoredCore6,
+        PRODUCT_NAME_ARMOREDCORE6 => RunningGame::ArmoredCore6,
         _ => return Err(GameDetectionError::UnknownProductName(product_name)),
     })
 }
